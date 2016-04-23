@@ -61,41 +61,56 @@ Theta2_grad = zeros(size(Theta2));
 %               the regularization separately and then add them to Theta1_grad
 %               and Theta2_grad from Part 2.
 %
-X = [ones(m,1),X];
-a2 = sigmoid(Theta1*(X)');
-a2 = [ones(size(a2(1,:)));a2];
-a3 = sigmoid(Theta2*a2);
-[q,w] = max(a3,[],1);
-Y = zeros(m,10);
+k = size(Theta2(:,1),1)
+X = [ones(m,1),X];            %add bias unit.
+a2 = sigmoid(X*Theta1');      %layer 2 
+%a2 = [ones(m,1),a2];
+a2 = [ones(size(a2,1),1),a2];
+a3 = sigmoid(a2*Theta2');     %layer 3
+Y = zeros(m,k);               
 for i = 1:m
-	if y(i) == 10
-	Y(i,1) = 1; 
-	else
-	Y(i,y(i)+1) = 1;
+	Y(i,y(i)) = 1;
 end
-end
-a =log(a3)*Y + (log(1-a3))*(1-Y)
-a1 = (sum((log(a3))*Y+(log(1-a3))*(1-Y)))
-	sum(a1)
-%J = sum(log(a3)*y+log(1-a3)*(1-y));
-J = 0;
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%Why vectorization can't success!!!!! Something wrong.
+%J = (-Y'*(log(a3))-(1-Y)'*(log(1-a3)))
+%J = sum(sum(J))/m;
+%J = J / m;
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
 for i = 1:m
-	for j = 1:10
-		%J = J + (log(a3(j,i)))*Y(i,j)+(log(1-a3(j,i)))*(1-Y(i,j));
-		J = J + Y(i,j)*(log(a3(j,i)))+(1-Y(i,j))*(log(1-a3(j,i)));
+	for j = 1:k
+		J = J + Y(i,j)*(log(a3(i,j)))+(1-Y(i,j))*(log(1-a3(i,j)));
 	end
-	end
-J
+end
 J = -J /m;
 
+S = [];
+S(1) = size(X(1,:),2);    %401
+S(2) = size(Theta1(:,1),1); %25
+S(3) = k;
+temp = 0;
+Theta = 0;
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Use for loop to calculate the regularization
+for i = 2:S(1)            % 2:401
+	for j = 1:S(2)        % 1:25
+		Theta = Theta + Theta1(j,i)^2;
+	end
+end
+for i = 2:(S(2)+1)        % 2:26
+	for j = 1:S(3)        % 1:10
+		Theta = Theta + Theta2(j,i)^2;
+	end
+end
+temp = Theta*lambda/(2*m);
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-
-
-
-
-
-
-
+%Use vectorization to calculate regularization
+Theta = sum(sum(Theta1(:,2:end).^2))+sum(sum(Theta2(:,2:end).^2));
+temp = Theta*lambda/(2*m);
+J = J + temp;
 
 
 % -------------------------------------------------------------
